@@ -3,26 +3,33 @@ use bevy::window::PrimaryWindow;
 
 pub struct PlayerPlugin;
 
-pub const PLAYER_SPEED: f32 = 500.0;
+//consts
+const PLAYER_SPEED: f32 = 500.0;
+//in pixels for the current sprite
+const PLAYER_SIZE: f32 = 64.0;
+
 impl Plugin for PlayerPlugin{
 
     fn build(&self, app: &mut App){
         app.add_systems(Startup, spawn_player);
         app.add_systems(Update, player_movement);
+        app.add_systems(Update, confine_player);
     }
 }
 
 
 #[derive(Component)]
-struct Player{
-    pub speed: f32
+pub struct Player{
+    //give these in the spawn for Player
+    pub speed: f32,
+    pub size: f32
 }
 
 #[derive(Component)]
 struct Collider;
 
 
-
+//creation
 fn spawn_player(
     mut commands: Commands,//for spawning
     window_query: Query<&Window, With<PrimaryWindow>>,//for window info
@@ -46,6 +53,7 @@ fn spawn_player(
             Transform::from_xyz(window.width()/2.0, window.height()/2.0, 0.0),
             Player{
                 speed: PLAYER_SPEED,
+                size: PLAYER_SIZE
             },
             Collider
         )
@@ -53,7 +61,7 @@ fn spawn_player(
 }
 
 
-
+//movement
 fn player_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<(&mut Transform, &Player)>,//get the transform and the player under playerQuery
@@ -92,3 +100,45 @@ fn player_movement(
 
     }
 }
+
+fn confine_player(
+    mut player_query: Query<(&mut Transform, &Player)>,
+    window_query: Query<&Window, With<PrimaryWindow>>,//for window width,hight info
+){
+    if let Ok((mut transform, player)) = player_query.single_mut()
+    {
+        let window: &Window = window_query.single().unwrap();
+        //calc from middle
+        let half_player_size: f32 = player.size /2.0;
+
+        let x_min = 0.0 + half_player_size;
+        let x_max = window.width() - half_player_size;
+        let y_min = 0.0 + half_player_size;
+        let y_max = window.height() - half_player_size;
+
+        //Grab because its called so much
+        let mut t_translation = transform.translation;
+
+        //lock the x
+        if t_translation.x < x_min{
+            t_translation.x = x_min;
+        }else if t_translation.x > x_max{
+            t_translation.x = x_max;
+        }
+        //lock the y
+        if t_translation.y < y_min{
+            t_translation.y = y_min;
+        }else if t_translation.y > y_max{
+            t_translation.y = y_max;
+        }
+
+        //put it back
+        transform.translation = t_translation;
+
+    }
+}
+
+
+
+
+
