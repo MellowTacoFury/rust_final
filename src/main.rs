@@ -4,6 +4,8 @@ use bevy::prelude::*;
 mod camera;
 mod player;
 mod bullet;
+mod enemy;
+mod hud;
 
 
 
@@ -14,6 +16,8 @@ fn main()
     app.add_plugins(camera::CameraPlugin);
     app.add_plugins(player::PlayerPlugin);
     app.add_plugins(bullet::BulletPlugin);
+    app.add_plugins(enemy::EnemyPlugin);
+    app.add_plugins(hud::HUDPlugin);
 
 
     app.run();
@@ -24,8 +28,8 @@ fn main()
 // //need the player and window to keep the player in the window
 
 /*Needs
-    collision/health
-    firing
+    --collision/health
+    --firing
     enemies - drop coins
     turrets & walls - cost coins
 
@@ -33,4 +37,3 @@ fn main()
     displaying text for which buttons place turret/walls
     audio for shooting/getting hit/hitting/placing
 */
-

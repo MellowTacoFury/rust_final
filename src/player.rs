@@ -1,12 +1,16 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
+
 pub struct PlayerPlugin;
 
+use crate::enemy::Enemy; //for the enemy component in the collision system
+use crate::hud::Health;//For removing health
+
 //consts
-const PLAYER_SPEED: f32 = 500.0;
+pub const PLAYER_SPEED: f32 = 500.0;
 //in pixels for the current sprite
-const PLAYER_SIZE: f32 = 64.0;
+pub const PLAYER_SIZE: f32 = 64.0;
 
 impl Plugin for PlayerPlugin{
 
@@ -14,6 +18,7 @@ impl Plugin for PlayerPlugin{
         app.add_systems(Startup, spawn_player);
         app.add_systems(Update, player_movement);
         app.add_systems(Update, confine_player);
+        app.add_systems(Update, enemy_player_collision_system);
     }
 }
 
@@ -22,7 +27,7 @@ impl Plugin for PlayerPlugin{
 pub struct Player{
     //give these in the spawn for Player
     pub speed: f32,
-    pub size: f32
+    pub size: f32,
 }
 
 #[derive(Component)]
@@ -139,6 +144,29 @@ fn confine_player(
 }
 
 
+//collision
+fn enemy_player_collision_system(
+    mut commands: Commands,
+    mut player_q: Query<(Entity, &Transform, &mut Player), With<Player>>,
+    enemies: Query<(Entity, &Transform, &Enemy), With<Enemy>>,
+    mut health: ResMut<Health>
+) {
+    let Ok((_player_entity, player_tf, mut player)) = player_q.single_mut() else {
+        return;
+    };
 
+    for (enemy_entity, enemy_tf, enemy) in &enemies {
+        let distance = player_tf
+            .translation.truncate()
+            .distance(enemy_tf.translation.truncate());
+
+        if distance < player.size/2.0 + enemy.size/2.0 {
+            health.0 -= enemy.damage;
+            commands.entity(enemy_entity).despawn();
+
+            // next_state.set(GameState::GameOver);
+        }
+    }
+}
 
 

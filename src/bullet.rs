@@ -4,6 +4,17 @@ use bevy::input::mouse::MouseButtonInput;
 use bevy::input::ButtonState;
 
 use crate::player::Player;//the public player component.
+use crate::enemy::Enemy;//the public enemy component.
+
+use crate::hud::Score;//For adding to the score
+
+
+//consts
+const BULLET_SPEED: f32 = 500.0;
+const BULLET_DAMAGE: i32 = 5;
+//in pixels for the current sprite
+const BULLET_SIZE: f32 = 30.0;
+
 
 pub struct BulletPlugin;
 
@@ -12,6 +23,8 @@ impl Plugin for BulletPlugin{
     fn build(&self, app: &mut App){
         app.add_systems(Update, shoot_bullet);
         app.add_systems(Update, move_bullet);
+        app.add_systems(Update, move_bullet);
+        app.add_systems(Update, bullet_enemy_collision_system);
     }
 }
 
@@ -22,6 +35,7 @@ struct Bullet {
     damage: i32,
     direction: Vec2,
     speed: f32,
+    size: f32
 }
 
 fn shoot_bullet(
@@ -54,14 +68,15 @@ fn shoot_bullet(
 
                     commands.spawn((
                     Sprite{
-                        image: asset_server.load("sprites/ball_blue_large.png"),
+                        image: asset_server.load("sprites/Bullet.png"),
 
                         ..Default::default()
                     },Transform::from_xyz(player_tf.translation.x, player_tf.translation.y, player_tf.translation.z),
                     Bullet {
-                        damage: 1,
+                        damage: BULLET_DAMAGE,
                         direction: dir,
-                        speed: 600.0,
+                        speed: BULLET_SPEED,
+                        size: BULLET_SIZE
                     },
                 ));
                 }
@@ -85,6 +100,42 @@ fn move_bullet(
         //Destroy once it moves far enough
         if tf.translation.length() > 5000.0 {
             commands.entity(entity).despawn();
+        }
+    }
+}
+
+
+fn bullet_enemy_collision_system(
+    mut commands: Commands,
+    bullets: Query<(Entity, &Transform, &Bullet), With<Bullet>>,
+    mut enemies: Query<(
+        Entity,
+        &Transform,
+        &mut Enemy,
+    )>,
+    mut score: ResMut<Score>
+) {
+    for (bullet_entity, bullet_tf, bullet) in &bullets {
+        for (enemy_entity, enemy_tf, mut enemy) in &mut enemies
+        {
+            let distance = bullet_tf
+                .translation
+                .truncate()
+                .distance(enemy_tf.translation.truncate());
+
+            let bullet_radius = bullet.size/2.0;
+            if distance < bullet_radius + enemy.size/2.0{
+                commands.entity(bullet_entity).despawn();
+
+                enemy.health -= bullet.damage;
+                score.0 += 10;
+
+                if enemy.health <= 0 {
+                    commands.entity(enemy_entity).despawn();
+                }
+
+                break;
+            }
         }
     }
 }
