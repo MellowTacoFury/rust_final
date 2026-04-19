@@ -1,22 +1,22 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-
-pub struct PlayerPlugin;
-
+//pieces needed
 use crate::enemy::Enemy; //for the enemy component in the collision system
 use crate::hud::Health;//For removing health
+use crate::restart::{self, GameState};//the public player component.
 
 //consts
 pub const PLAYER_SPEED: f32 = 500.0;
 //in pixels for the current sprite
 pub const PLAYER_SIZE: f32 = 64.0;
 
+pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin{
 
     fn build(&self, app: &mut App){
-        app.add_systems(Startup, spawn_player);
-        app.add_systems(Update, player_movement);
+        // app.add_systems(Startup, spawn_player); //-- removed because restart calls it
+        app.add_systems(Update, player_movement.run_if(in_state(GameState::Playing)));
         app.add_systems(Update, confine_player);
         app.add_systems(Update, enemy_player_collision_system);
     }
@@ -33,9 +33,9 @@ pub struct Player{
 #[derive(Component)]
 struct Collider;
 
-
 //creation
-fn spawn_player(
+//pub for calling from restart
+pub fn spawn_player(
     mut commands: Commands,//for spawning
     window_query: Query<&Window, With<PrimaryWindow>>,//for window info
     asset_server: Res<AssetServer>//for player asset
@@ -44,11 +44,6 @@ fn spawn_player(
     //let the window of type &Window 
     //be the only query that is window with the PW, unwrap to get it
     let window: &Window = window_query.single().unwrap();
-
-    //spawn an entity with the Sprite, the Transform
-    //and give it the custom "Player" component, so we can query for the component
-    //and collider component for later collision
-    //src\assets\sprites\ASSETNAME.png
     commands.spawn(
         (
             Sprite{
@@ -60,13 +55,12 @@ fn spawn_player(
                 speed: PLAYER_SPEED,
                 size: PLAYER_SIZE
             },
-            Collider
+            Collider,
+            restart::AllEntities
         )
     );
 }
 
-
-//movement
 fn player_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<(&mut Transform, &Player)>,//get the transform and the player under playerQuery
@@ -143,10 +137,9 @@ fn confine_player(
     }
 }
 
-
-//collision
 fn enemy_player_collision_system(
     mut commands: Commands,
+    mut next_state: ResMut<NextState<GameState>>,
     mut player_q: Query<(Entity, &Transform, &mut Player), With<Player>>,
     enemies: Query<(Entity, &Transform, &Enemy), With<Enemy>>,
     mut health: ResMut<Health>
@@ -163,10 +156,10 @@ fn enemy_player_collision_system(
         if distance < player.size/2.0 + enemy.size/2.0 {
             health.0 -= enemy.damage;
             commands.entity(enemy_entity).despawn();
-
-            // next_state.set(GameState::GameOver);
+            if health.0 <= 0.0{
+                next_state.set(GameState::GameOver);
+            }
+            
         }
     }
 }
-
-

@@ -3,31 +3,29 @@ use bevy::window::PrimaryWindow;
 use bevy::input::mouse::MouseButtonInput;
 use bevy::input::ButtonState;
 
-use crate::player::Player;//the public player component.
-use crate::enemy::Enemy;//the public enemy component.
-
-use crate::hud::Score;//For adding to the score
+//pieces needed
+use crate::player::Player;
+use crate::enemy::Enemy;
+use crate::restart;
+use crate::hud::Score;
 
 
 //consts
 const BULLET_SPEED: f32 = 500.0;
 const BULLET_DAMAGE: i32 = 5;
-//in pixels for the current sprite
+//in pixels for the current sprite i believe?
 const BULLET_SIZE: f32 = 30.0;
 
 
 pub struct BulletPlugin;
-
 impl Plugin for BulletPlugin{
 
     fn build(&self, app: &mut App){
-        app.add_systems(Update, shoot_bullet);
-        app.add_systems(Update, move_bullet);
+        app.add_systems(Update, shoot_bullet.run_if(in_state(restart::GameState::Playing)));
         app.add_systems(Update, move_bullet);
         app.add_systems(Update, bullet_enemy_collision_system);
     }
 }
-
 
 
 #[derive(Component)]
@@ -37,6 +35,7 @@ struct Bullet {
     speed: f32,
     size: f32
 }
+
 
 fn shoot_bullet(
     mut mousebtn_evr: MessageReader<MouseButtonInput>,
@@ -78,14 +77,13 @@ fn shoot_bullet(
                         speed: BULLET_SPEED,
                         size: BULLET_SIZE
                     },
+                    restart::AllEntities
                 ));
                 }
             }
         }
     }
 }
-
-
 
 fn move_bullet(
     time: Res<Time>,
@@ -103,7 +101,6 @@ fn move_bullet(
         }
     }
 }
-
 
 fn bullet_enemy_collision_system(
     mut commands: Commands,

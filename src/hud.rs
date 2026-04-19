@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 
-pub struct HUDPlugin;
 
+//consts
+pub const STARTING_HEALTH: f32 = 10.0;
+
+pub struct HUDPlugin;
 impl Plugin for HUDPlugin
 {
     fn build(&self, app: &mut App) {
@@ -9,7 +12,7 @@ impl Plugin for HUDPlugin
         app.add_systems(Startup, setup_health);
 
         app.insert_resource(Score(0));
-        app.insert_resource(Health(100.0));
+        app.insert_resource(Health(STARTING_HEALTH));
 
         app.add_systems(Update, update_score_ui);
         app.add_systems(Update, update_health_ui);
@@ -27,7 +30,6 @@ struct HealthText;
 pub struct Health(pub f32);
 
 
-//score
 fn setup_score(mut commands: Commands) {
     // Score UI (screen space)
     commands.spawn((
@@ -56,8 +58,6 @@ fn update_score_ui(score: Res<Score>, mut query: Query<&mut Text, With<ScoreText
     }
 }
 
-
-//health
 fn setup_health(mut commands: Commands) {
     // Score UI (screen space)
     commands.spawn((
