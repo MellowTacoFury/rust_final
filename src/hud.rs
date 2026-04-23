@@ -129,7 +129,7 @@ fn update_coins_ui(coins: Res<Coins>, mut query: Query<&mut Text, With<CoinsText
 
 fn setup_directions(mut commands: Commands) {
     commands.spawn((
-        Text::new("move - WASD\nshoot - LMB\nStop - ESC\nBuy Wall (5 coins) - E"),
+        Text::new("move - WASD\nshoot - LMB\nBuy Wall (5 coins) - E\nDie faster - Q"),
         TextFont {
             font_size: 28.0,
             font: default(),
@@ -149,7 +149,7 @@ fn setup_directions(mut commands: Commands) {
 fn die_faster(keyboard_input: Res<ButtonInput<KeyCode>>,
     mut next_state: ResMut<NextState<GameState>>,)
 {
-    if keyboard_input.pressed(KeyCode::KeyE)
+    if keyboard_input.pressed(KeyCode::KeyQ)
     {
         next_state.set(GameState::GameOver);
     }

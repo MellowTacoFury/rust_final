@@ -18,8 +18,6 @@ struct Coin {
     size: f32
 }
 
-#[derive(Component)]
-struct Collider;
 
 
 pub fn spawn_coin(
@@ -30,14 +28,13 @@ pub fn spawn_coin(
     commands.spawn(
         (
             Sprite{
-                image: asset_server.load("sprites/Bullet.png"),
+                image: asset_server.load("sprites/coin.png"),
                 ..Default::default()
             },
             Transform::from_xyz(transform.translation.x, transform.translation.y, transform.translation.z),
             Coin{
                 size: COIN_SIZE
             },
-            Collider,
             restart::AllEntities
         )
     );
