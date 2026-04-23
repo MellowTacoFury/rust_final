@@ -6,6 +6,7 @@ mod player;
 mod bullet;
 mod enemy;
 mod hud;
+mod coin;
 
 fn main()
 {
@@ -17,6 +18,7 @@ fn main()
     app.add_plugins(enemy::EnemyPlugin);
     app.add_plugins(hud::HUDPlugin);
     app.add_plugins(restart::RestartPlugin);
+    app.add_plugins(coin::CoinPlugin);
 
 
     app.run();

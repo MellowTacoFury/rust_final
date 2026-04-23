@@ -8,6 +8,7 @@ use crate::player::Player;
 use crate::enemy::Enemy;
 use crate::restart;
 use crate::hud::Score;
+use crate::coin::spawn_coin;
 
 
 //consts
@@ -103,7 +104,8 @@ fn move_bullet(
 }
 
 fn bullet_enemy_collision_system(
-    mut commands: Commands,
+    mut commands:Commands,
+    asset_server: Res<AssetServer>,
     bullets: Query<(Entity, &Transform, &Bullet), With<Bullet>>,
     mut enemies: Query<(
         Entity,
@@ -128,6 +130,9 @@ fn bullet_enemy_collision_system(
                 score.0 += 10;
 
                 if enemy.health <= 0 {
+                    if enemy.will_drop_coin == true{
+                        spawn_coin(&asset_server, &mut commands, enemy_tf);
+                    }
                     commands.entity(enemy_entity).despawn();
                 }
 

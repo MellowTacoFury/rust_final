@@ -38,6 +38,7 @@ pub struct Enemy {
     pub size: f32,
     pub damage: f32,
     pub speed: f32,
+    pub will_drop_coin: bool
 }
 
 
@@ -81,13 +82,25 @@ fn spawn_enemies(
         EnemyType::Tank => (ENEMY_SPEEDS[2], 3.0, 3, asset_server.load("sprites/RedEnemy.png"))
     };
 
+    let t = rng.random_range(0..=1);
+    let b: bool;
+    if t == 1
+    {
+        b=false;
+    }
+    else
+    {
+        b=true;
+    }
+
     //spawn
     commands.spawn((
         Enemy {
             health,
             size: ENEMY_SIZE,
             damage: enemy_damage,
-            speed: enemy_speed
+            speed: enemy_speed,
+            will_drop_coin: b,
         },
         Sprite{
                 image: sprite,

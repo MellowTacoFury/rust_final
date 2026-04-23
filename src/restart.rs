@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 //pieces needed
 use crate::player::spawn_player;
-use crate::hud::{Health, STARTING_HEALTH, Score};
+use crate::hud::{Health, STARTING_HEALTH, Score, Coins};
 
 
 pub struct RestartPlugin;
@@ -67,6 +67,7 @@ fn setup_new_game(
     mut commands: Commands,
     mut score: ResMut<Score>,
     mut health: ResMut<Health>,
+    mut coins: ResMut<Coins>,
     game_over_text: Query<Entity, With<GOText>>,
 ) {
     // Reset score
@@ -74,6 +75,8 @@ fn setup_new_game(
 
     //reset health
     health.0 = STARTING_HEALTH;
+
+    coins.0 = 0;
 
     // Remove game over text
     for entity in &game_over_text {
